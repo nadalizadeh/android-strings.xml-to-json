@@ -1,0 +1,14 @@
+{
+  "name": "android-strings.xml-to-json",
+  "version": "1.0.0",
+  "description": "Converts Android strings.xml to JSON",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ali",
+  "license": "ISC",
+  "dependencies": {
+    "xmldom": "^0.3.0"
+  }
+}
