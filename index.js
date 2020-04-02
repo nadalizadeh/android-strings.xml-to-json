@@ -1,8 +1,17 @@
 const fs = require("fs");
-  
-var filename = "/path/to/project/values-de/strings.xml";
 
-var xmlData = fs.readFileSync(filename, 'utf8');
+if (process.argv.length < 4) {
+	console.info("Usage:")
+	console.info("node index.js /project/values/strings.xml output.json")
+	process.exit()
+}
+
+// path to project /values/strings.xml
+var input_file = process.argv[2];
+// output.json
+var output_file = process.argv[3];
+
+var xmlData = fs.readFileSync(input_file, 'utf8');
 
 jsonObj = {}
 
@@ -16,30 +25,35 @@ var doc = new DOMParser().parseFromString(
 var nsAttr = doc.documentElement.getAttributeNS('')
 console.info(nsAttr)
 
+function replaceParameters(inputStr, paramPrefix = "param") {
+	return inputStr.replace(/%([0-9]+)\$([0-9\.]*[fds])/g, (match, p1, p2, p3, offset, string) => {
+				return "%{" + "paramPrefix" + p1 + "}"
+			});
+}
+
 function getSuitableTextFromChildren(theNode) {
 	var chNodes = theNode.childNodes;
 	var outputText = ''
 	for (var i = 0; i < chNodes.length; i++) {
 		if (chNodes[i].constructor.name == 'Text') {
-			outputText += chNodes[i].nodeValue
+			outputText += replaceParameters(chNodes[i].nodeValue)
 			// console.info(xmls.serializeToString(arr_items[i]))
 		}
 		if (chNodes[i].constructor.name == 'Element') {
 			if (chNodes[i].tagName == "xliff:g") {
 				var xliff_content = chNodes[i].firstChild.nodeValue
-				if (xliff_content.includes('%')) {
-					var content_elements = xliff_content.match(/%([0-9]+)\$(.*[fds])(.*)/) // sample: "%1$dh"
-					var extra = (content_elements && content_elements.length > 3) ? content_elements[3] : ""
-					var xliff_id = node.getAttribute("id");
-					if (xliff_id == undefined || xliff_id == null || xliff_id == "") {
-						xliff_id = "param" + (xliff_content[1] || "")
-					}
-					outputText += "{%" + xliff_id + "}" + extra
-				} else {
-					outputText += xliff_content
+				var xliff_id = node.getAttribute("id");
+				if (xliff_id == undefined || xliff_id == null || xliff_id == "") {
+					xliff_id = "param"
 				}
+
+				outputText += "<xliff:g>" + replaceParameters(xliff_content, xliff_id) + "</xliff:g>"
 			} else if (chNodes[i].tagName == "u") {
-				outputText += "<u>" + getSuitableTextFromChildren(chNodes[i]) + "</u>"
+				// Ignore the <u> tag
+				outputText += getSuitableTextFromChildren(chNodes[i])
+
+				// or reflect the <u> tag
+				// outputText += "<u>" + getSuitableTextFromChildren(chNodes[i]) + "</u>"
 			} else {
 				console.error("Unknown tagName inside the text: " + chNodes[i].tagName)
 			}
@@ -49,7 +63,7 @@ function getSuitableTextFromChildren(theNode) {
 	return outputText.trim()
 }
 
-const commentSuffix = "_#"
+const commentSuffix = "__#"
 var lastComment = null;
 var items = doc.documentElement.childNodes;
 for (var i = 0; i < items.length; i++) {
@@ -88,4 +102,4 @@ for (var i = 0; i < items.length; i++) {
 	}
 }
 
-fs.writeFileSync('output.json', JSON.stringify(jsonObj, null, 4))
+fs.writeFileSync(output_file, JSON.stringify(jsonObj, null, 4))
