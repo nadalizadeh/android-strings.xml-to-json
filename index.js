@@ -27,8 +27,14 @@ console.info(nsAttr)
 
 function replaceParameters(inputStr, paramPrefix = "param") {
 	return inputStr.replace(/%([0-9]+)\$([0-9\.]*[fds])/g, (match, p1, p2, p3, offset, string) => {
-				return "%{" + "paramPrefix" + p1 + "}"
-			});
+				if (paramPrefix == "param")
+					return "%{" + paramPrefix + p1 + "}"
+				else
+					return "%{" + paramPrefix + "}"
+			})
+	.replace(/%%/g, "%")
+	.replace(/\\'/g, "'")
+	.replace(/\\n/g, "\n");
 }
 
 function getSuitableTextFromChildren(theNode) {
@@ -42,7 +48,8 @@ function getSuitableTextFromChildren(theNode) {
 		if (chNodes[i].constructor.name == 'Element') {
 			if (chNodes[i].tagName == "xliff:g") {
 				var xliff_content = chNodes[i].firstChild.nodeValue
-				var xliff_id = node.getAttribute("id");
+				//
+				var xliff_id = chNodes[i].getAttribute("id");
 				if (xliff_id == undefined || xliff_id == null || xliff_id == "") {
 					xliff_id = "param"
 				}
