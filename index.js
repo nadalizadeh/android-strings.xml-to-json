@@ -62,7 +62,8 @@ function getSuitableTextFromChildren(theNode) {
 				// or reflect the <u> tag
 				// outputText += "<u>" + getSuitableTextFromChildren(chNodes[i]) + "</u>"
 			} else {
-				console.error("Unknown tagName inside the text: " + chNodes[i].tagName)
+				outputText += chNodes[i]
+				console.error("Unknown tagName inside the text: " + chNodes[i].tagName + " Adding the whole block with html tags")
 			}
 		}
 	}
